@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plinko Game</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Game container */
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 90%;
+            max-width: 1000px;
+            min-width: 300px;
+        }
+
+        /* Canvas for plinko */
+        canvas {
+            border: 2px solid #000;
+            background: #ffffff;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #score {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            margin: 0;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 1em;
+            background-color: #009688;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #00796B;
+        }
+
+        #restartButton {
+            display: none;
+            background-color: #e91e63;
+        }
+
+        input {
+            margin-top: 10px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Responsive Sidebar */
+        #sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        /* Rules Button - positioned in the top right corner */
+        #rulesButton {
+           
+            
+            background-color: #009688;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Rule visibility */
+        #sidebar {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background-color: white;
+            border: 2px solid #009688;
+            padding: 10px;
+            width: 250px;
+            z-index: 1;
+        }  #spinWheelButton{
+             
+            background-color: #009688;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        } #Updates {
+            background-color: #009688;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1000px) {
+            #score {
+                font-size: 1em;
+            }
+
+            button {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+
+            canvas {
+                width: 80%;
+                max-width: 600px;
+            } #spinWheelButton{
+                font-size: 0.9em;
+                padding: 8px;
+            } #rulesButton{
+                font-size: 0.9em;
+                padding: 8px;
+            } #Updates {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #score {
+                font-size: 0.9em;
+            }
+
+            button {
+                font-size: 0.8em;
+                padding: 6px;
+            }
+
+            #sidebar {
+                width: 200px;
+            }
+
+            canvas {
+                width: 90%;
+                max-width: 500px;
+            }
+
+            #gameContainer {
+                gap: 10px;
+                padding: 10px;
+            }
+
+            h2 {
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 400px) {
+            button {
+                font-size: 0.7em;
+                padding: 5px;
+            }
+
+            #score {
+                font-size: 0.8em;
+            }
+
+            canvas {
+                width: 100%;
+                max-width: 400px;
+            }
+
+            #gameContainer {
+                gap: 5px;
+            }
+
+            h2 {
+                font-size: 0.9em;
+            }
+        }
+          
+    </style>
+</head>
+<body>
+    
+    <div id="gameContainer">
+        <!-- Rules Button -->
+        <button id="rulesButton">Show Rules (reccomended to read before you play!)</button>
+
+        <div>
+            <div class="progress-container">
+                <div class="progress-bar" id="scoreBar"></div>
+            </div>
+            <button id="spinWheelButton">Spin Wheel</button>
+            <div id="score">Score: 30</div>
+            <canvas id="plinkoCanvas" width="600" height="600"></canvas>
+            <button id="dropBallButton">Drop New Ball (-5 points)</button>
+            <button id="rainbowBallButton">Drop Rainbow Ball (-25 points)</button>
+            <button id="multiplierButton">Activate Multiplier (+200 points)</button>
+            <button id="sigmaBoyButton">Spawn Sigma Boy Ball (Doesen't work IM TOO LAZY TO FIX IT!!! P.S don't press on it, it will substract your score with no prize.)</button>
+            <button id="restartButton">Restart (0 points)</button> <!-- Reset Button -->
+            <button id="Updates" onclick="redirect()">Go to Another Site</button>
+            
+        </div>
+    </div>
+
+    <!-- Sidebar for Rules -->
+    <div id="sidebar">
+        <h2>Plinko Rules</h2>
+        <ul>
+            <li><strong>Drop New Ball</strong> (Cost: -5 points): Drop a normal ball.</li>
+            <li><strong>Rainbow Ball</strong> (Cost: -25 points): Drop a rainbow ball that multiplies score but costs more.</li>
+            <li><strong>Multiplier</strong> (Cost: +200 points): Activates a multiplier that multiplies zone scores for 20 seconds.</li>
+            <li><strong>Sigma Boy Ball</strong> (Cost: +100 points): Spawns a blue ball that changes the zone values temporarily based on where it lands.</li>
+            <li><strong>Spin Wheel</strong>: Spin the wheel to get one of four outcomes:
+                <ul>
+                    <li>-95% of your score (lose most of your points)</li>
+                    <li>-50% of your score (lose half of your points)</li>
+                    <li>+50% of your score (gain half of your points)</li>
+                    <li>+20% of your score (gain a portion of your points)</li>
+                </ul>
+            </li>
+        </ul>
+        </ul>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("plinkoCanvas");
+        const ctx = canvas.getContext("2d");
+        const dropBallButton = document.getElementById("dropBallButton");
+        const rainbowBallButton = document.getElementById("rainbowBallButton");
+        const multiplierButton = document.getElementById("multiplierButton");
+        const sigmaBoyButton = document.getElementById("sigmaBoyButton");
+        const restartButton = document.getElementById("restartButton");
+        const scoreDisplay = document.getElementById("score");
+        const timerDisplay = document.getElementById("timer");
+        const rulesButton = document.getElementById("rulesButton");
+        const sidebar = document.getElementById("sidebar");
+        const Info = document.getElementById("Updates");
+
+        const gravity = 1.5;
+        const friction = 0.8;
+        const ballRadius = 10;
+        const pegRadius = 6;
+
+        let score = 30;
+        let balls = [];
+        let isMultiplierActive = false;
+        let multiplierTimeLeft = 0;
+        let isMultiplierInProgress = false;
+        let sigmaBoyActive = false;
+        let sigmaBoyEndTime = 0;
+
+        const pegs = [];
+        const rows = 13;
+        const spacing = 45;
+
+        // Generate pegs
+        for (let row = 1; row < rows; row++) {
+            const cols = row + 4;
+            for (let col = 0; col < cols; col++) {
+                const x = (canvas.width / 2) - (cols / 2 * spacing) + col * spacing + spacing / 2;
+                const y = 10 + row * spacing;
+                pegs.push({ x, y });
+            }
+        }
+        function redirect() {
+      window.location.href = "info.html";
+    }
+
+        // Adjust the zones
+        const zones = [
+            { x: 0, width: 100, score: -10 },
+            { x: 100, width: 100, score: 10 },
+            { x: 200, width: 100, score: 30 },
+            { x: 300, width: 100, score: 30 },
+            { x: 400, width: 100, score: 10 },
+            { x: 500, width: 100, score: -10 }
+        ];
+
+        function drawBall(ball) {
+            ctx.beginPath();
+            if (ball.isRainbow) {
+                ctx.fillStyle = `hsl(${ball.color}, 100%, 50%)`;
+                ball.color = (ball.color + 5) % 360;
+            } else if (ball.isSigmaBoy) {
+                ctx.fillStyle = "blue";
+            } else {
+                ctx.fillStyle = "#FF5733";
+            }
+            ctx.arc(ball.x, ball.y, ballRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPegs() {
+            ctx.fillStyle = "#009688";
+            pegs.forEach(peg => {
+                ctx.beginPath();
+                ctx.arc(peg.x, peg.y, pegRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.closePath();
+            });
+        }
+
+        function drawZones() {
+            ctx.font = "16px Arial";
+            ctx.textAlign = "center";
+            zones.forEach(zone => {
+                ctx.fillStyle = "#e0e0e0";
+                ctx.fillRect(zone.x, canvas.height - 50, zone.width, 50);
+                ctx.fillStyle = "#000";
+                let scoreDisplay = zone.score;
+                if (isMultiplierActive) {
+                    scoreDisplay *= 3;
+                }
+                if (sigmaBoyActive && Date.now() < sigmaBoyEndTime) {
+                    if (zone.score < 0) {
+                        scoreDisplay = 20;
+                    } else if (zone.score > 0) {
+                        scoreDisplay = -10;
+                    }
+                }
+                ctx.fillText(scoreDisplay, zone.x + zone.width / 2, canvas.height - 20);
+            });
+        }
+
+        function updateBall(ball, index) {
+            ball.dy += gravity;
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // Check wall collisions
+            if (ball.x - ballRadius < 0 || ball.x + ballRadius > canvas.width) {
+                ball.dx = -ball.dx * friction;
+            }
+
+            // Check peg collisions
+            pegs.forEach(peg => {
+                const dx = ball.x - peg.x;
+                const dy = ball.y - peg.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < ballRadius + pegRadius) {
+                    // Calculate normal and tangential vectors
+                    const angle = Math.atan2(dy, dx);
+                    const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+                    
+                    // Reflect ball's velocity off peg
+                    const normalX = Math.cos(angle);
+                    const normalY = Math.sin(angle);
+                    const dotProduct = ball.dx * normalX + ball.dy * normalY;
+                    
+                    ball.dx -= 2 * dotProduct * normalX;
+                    ball.dy -= 2 * dotProduct * normalY;
+
+                    // Adjust ball position to prevent overlap
+                    const overlap = (ballRadius + pegRadius) - distance;
+                    ball.x += normalX * overlap;
+                    ball.y += normalY * overlap;
+
+                    // Apply friction
+                    ball.dx *= friction;
+                    ball.dy *= friction;
+                }
+            });
+
+            // Check bottom zones
+            if (ball.y + ballRadius >= canvas.height - 50) {
+                zones.forEach(zone => {
+                    if (ball.x > zone.x && ball.x < zone.x + zone.width) {
+                        score += ball.isRainbow ? zone.score * 25 : (isMultiplierActive ? zone.score * 3 : zone.score);
+                    }
+                });
+                balls.splice(index, 1);
+                scoreDisplay.innerText = `Score: ${score}`;
+            }
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawZones();
+            drawPegs();
+            balls.forEach(updateBall);
+            balls.forEach(drawBall);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Toggle rule visibility
+        rulesButton.addEventListener("click", () => {
+            sidebar.style.display = sidebar.style.display === "none" ? "block" : "none";
+        });
+
+        dropBallButton.addEventListener("click", () => {
+            if (score >= 5) {
+                score -= 5;
+                balls.push({ x: canvas.width / 2, y: 50, dx: (Math.random() - 0.5) * 2, dy: 1, isRainbow: false });
+                scoreDisplay.innerText = `Score: ${score}`;
+            }
+        });
+
+        rainbowBallButton.addEventListener("click", () => {
+            if (score >= 25) {
+                score -= 25;
+                balls.push({ x: canvas.width / 2, y: 50, dx: (Math.random() - 0.5) * 2, dy: 1, isRainbow: true, color: 0 });
+                scoreDisplay.innerText = `Score: ${score}`;
+            }
+        });
+
+        multiplierButton.addEventListener("click", () => {
+            if (score >= 200 && !isMultiplierInProgress) {
+                score -= 200;
+                isMultiplierActive = true;
+                multiplierTimeLeft = 20;
+                multiplierButton.style.display = "none";
+                scoreDisplay.innerText = `Score: ${score}`;
+                timerDisplay.innerText = `Multiplier Active: ${multiplierTimeLeft}s`;
+                
+                const timerInterval = setInterval(() => {
+                    if (multiplierTimeLeft > 0) {
+                        multiplierTimeLeft--;
+                        timerDisplay.innerText = `Multiplier Active: ${multiplierTimeLeft}s`;
+                    } else {
+                        clearInterval(timerInterval);
+                        isMultiplierActive = false;
+                        multiplierButton.style.display = "block";  // Show button again
+                    }
+                }, 1000);
+            }
+        });
+
+        sigmaBoyButton.addEventListener("click", () => {
+            if (score >= 100) {
+                score -= 100;
+                sigmaBoyActive = true;
+                sigmaBoyEndTime = Date.now() + 30000;  // Set 30 second timer for sigma boy effect
+                sigmaBoyButton.style.display = "none";  // Hide button after use
+                scoreDisplay.innerText = `Score: ${score}`;
+            }
+        });
+
+        restartButton.addEventListener("click", () => {
+            score = 30;
+            scoreDisplay.innerText = `Score: ${score}`;
+            balls = [];
+            restartButton.style.display = "none";
+        });
+
+        gameLoop();
+
+        const wheelOutcomes = [
+            { type: "decrease", percentage: 95 },
+            { type: "decrease", percentage: 50 },
+            { type: "increase", percentage: 50 },
+            { type: "increase", percentage: 20 },
+        ];
+
+        function spinWheel() {
+            // Randomly choose one of the wheel outcomes
+            const outcome = wheelOutcomes[Math.floor(Math.random() * wheelOutcomes.length)];
+            let adjustment = 0;
+
+            // Apply the selected outcome to the score
+            if (outcome.type === "decrease") {
+                adjustment = -(score * (outcome.percentage / 100));
+            } else if (outcome.type === "increase") {
+                adjustment = score * (outcome.percentage / 100);
+            }
+
+            score += adjustment;
+            score = Math.max(score, 0); // Ensure score doesn't go negative
+
+            scoreDisplay.innerText = `Score: ${Math.round(score)}`;
+            alert(`Wheel spun! ${outcome.percentage}% ${outcome.type === "decrease" ? "decreased" : "increased"} your score.`);
+        }
+
+        // Wheel spin button event listener
+        spinWheelButton.addEventListener("click", spinWheel);
+
+        // Rest of the game loop and functionality remains the same...
+
+    </script>
+     
+
+</body>
+</html>
